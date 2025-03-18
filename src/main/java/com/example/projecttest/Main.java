@@ -12,7 +12,7 @@ public class Main extends Application {
         // Load the login.fxml file
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/projecttest/login.fxml"));
         Parent root = loader.load();
-        primaryStage.setTitle("University Management System");
+        primaryStage.setTitle("University System");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
     }
