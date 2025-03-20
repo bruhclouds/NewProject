@@ -13,63 +13,78 @@ import java.io.IOException;
 import java.util.List;
 
 public class LoginController {
-    @FXML private TextField usernameField;
-    @FXML private PasswordField passwordField;
-    @FXML private Label errorLabel;
+
+    @FXML
+    private TextField usernameField;
+    @FXML
+    private PasswordField passwordField;
+    @FXML
+    private Label errorLabel;
 
     private List<Student> students;
     private List<Faculty> faculties;
 
+    // Initialize method to load data from Excel
     public void initialize() {
-        // Load data from Excel
+        loadDataFromExcel();
+    }
+
+    // Method to load the data from the Excel file
+    private void loadDataFromExcel() {
         ExcelReader reader = new ExcelReader("UMS_Data.xlsx");
         students = reader.loadStudents();
         faculties = reader.loadFaculties();
+        System.out.println("Loaded " + students.size() + " students.");
+        System.out.println("Loaded " + faculties.size() + " faculties.");
     }
 
     @FXML
     private void handleLogin() {
+        // Clear previous error messages
+        errorLabel.setText("");
+
+        // Get the login credentials
         String username = usernameField.getText();
         String password = passwordField.getText();
 
-        if (username.equals("admin")) {
-            if (password.equals("admin123")) {
-                loadDashboard("admin_dashboard.fxml");
-            } else {
-                errorLabel.setText("Invalid admin password.");
-            }
+        // Admin login check
+        if (isAdmin(username, password)) {
+            loadDashboard("admin_dashboard.fxml");
+        } else if (isValidStudent(username, password)) {
+            loadDashboard("student_dashboard.fxml");
+        } else if (isValidFaculty(username, password)) {
+            loadDashboard("faculty_dashboard.fxml");
         } else {
-            // Check if user is a student
-            for (Student student : students) {
-                if (student.getId().equals(username) && student.getPassword().equals(password)) {
-                    loadDashboard("student_dashboard.fxml");
-                    return;
-                }
-            }
-
-            // Check if user is a faculty
-            for (Faculty faculty : faculties) {
-                if (faculty.getId().equals(username) && faculty.getPassword().equals(password)) {
-                    loadDashboard("faculty_dashboard.fxml");
-                    return;
-                }
-            }
-
             errorLabel.setText("Invalid username or password.");
         }
     }
 
+    // Check if the user is an admin
+    private boolean isAdmin(String username, String password) {
+        return "admin".equals(username) && "admin123".equals(password);
+    }
+
+    // Check if the user is a valid student
+    private boolean isValidStudent(String username, String password) {
+        return students.stream().anyMatch(student -> student.getId().equals(username) && student.getPassword().equals(password));
+    }
+
+    // Check if the user is a valid faculty
+    private boolean isValidFaculty(String username, String password) {
+        return faculties.stream().anyMatch(faculty -> faculty.getId().equals(username) && faculty.getPassword().equals(password));
+    }
+
+    // Method to load the appropriate dashboard after a successful login
     private void loadDashboard(String fxmlFile) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlFile));
             Parent root = loader.load();
             Stage stage = (Stage) usernameField.getScene().getWindow();
             stage.setScene(new Scene(root));
-            //stage.setWidth(800); // Set width
-            //stage.setHeight(600); // Set height
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
+            errorLabel.setText("Error loading dashboard.");
         }
     }
 }
